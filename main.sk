@@ -1,0 +1,48 @@
+options:
+	Prefix: &8[&bManutenzione&8] &8Â»
+	PermessoStaff: maintenance.staff
+	PermessoUse: maintenance.command
+options:
+	nopermission: &cInsufficient permission.
+	
+command /maintenance [<text>]:
+	permission: servername.maintenance
+	permission message: {@nopermission}
+	trigger:
+		if arg 1 is not set:
+			set {_enabled} to {server::maintenance}
+			if {_enabled} is not set:
+				set {server::maintenance} to false
+			open chest with 1 row named "Maintenance Mode" to player
+			wait 1 tick
+			format slot 2 of player with green_stained_glass named "&aEnable Maintenance Mode" to close then run [make player execute command "maintenance enable"]
+			format slot 6 of player with red_stained_glass named "&cDisable Maintenance Mode" to close then run [make player execute command "maintenance disable"]
+		if arg 1 is set:
+			if arg 1 is "enable":
+				set {_enabled} to {server::maintenance}
+				if {_enabled} is true:
+					message "&cMaintenance Mode is already enabled!"
+					stop
+				else:
+					set {server::maintenance} to true
+					message "&aYou have enabled Maintenance Mode."
+					stop
+			else if arg 1 is "disable":
+				set {_enabled} to {server::maintenance}
+				if {_enabled} is false:
+					message "&cMaintenance Mode is already disabled!"
+					stop
+				else:
+					set {server::maintenance} to false
+					message "&aYou have disabled Maintenance Mode."
+					stop
+				
+on connect:
+	set {_enabled} to {server::maintenance}
+	if {_enabled} is true:
+		if player has permission "servername.maintenance.bypass":
+			stop
+		else if player does not have permission "servername.maintenance.bypass":
+			kick player due to "&c&lThis server is currently under Maintenance. %nl%&6Please join later."
+			set join message to ""
+			stop
